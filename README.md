@@ -1,6 +1,12 @@
 # actions/setup-python
 
-Hardened GitHub Action by [Chainguard](https://www.chainguard.dev).
+Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/actions/setup-python](https://github.com/actions/setup-python).
+
+## Versions
+
+| Version | Tag | Upstream commit |
+|---------|-----|-----------------|
+| v6.2.0 | [`v6.2.0`](https://github.com/chainguard-actions/setup-python/tree/v6.2.0) | — |
 
 ## Privacy
 
