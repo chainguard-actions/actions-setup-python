@@ -2,5 +2,6 @@
   "owner": "actions",
   "name": "setup-python",
   "visibility": "internal",
-  "description": "Set up your GitHub Actions workflow with a specific version of Python"
+  "description": "Set up your GitHub Actions workflow with a specific version of Python",
+  "block_publish": false
 }

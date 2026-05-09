@@ -1,4 +1,6 @@
 {
-  "upstream": "actions/setup-python",
-  "version": "v6.2.0"
+  "owner": "actions",
+  "repo": "setup-python",
+  "version": "",
+  "url": "https://github.com/actions/setup-python"
 }
