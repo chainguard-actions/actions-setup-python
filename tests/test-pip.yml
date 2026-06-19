@@ -31,7 +31,7 @@ jobs:
             exit 1
           fi
           echo "PASS"
-      - name: Assert requests is installed
+      - name: Assert requests package is installed
         run: |
           python -c "import requests; print('requests version:', requests.__version__)"
           echo "PASS"
