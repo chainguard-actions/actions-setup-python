@@ -1,0 +1,33 @@
+name: Test cache input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Create requirements.txt for cache dependency
+        run: |
+          echo "requests>=2.0.0" > "$GITHUB_WORKSPACE/requirements.txt"
+      - id: action
+        uses: .
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Assert python-version output is set
+        env:
+          ACTUAL: ${{ steps.action.outputs.python-version }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-version output was empty"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert cache-hit output is present
+        env:
+          ACTUAL: ${{ steps.action.outputs.cache-hit }}
+        run: |
+          echo "cache-hit: $ACTUAL"
+          echo "PASS"

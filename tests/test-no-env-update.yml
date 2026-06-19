@@ -1,0 +1,49 @@
+name: Test Python setup with update-environment false
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup
+        uses: .
+        with:
+          python-version: "3.11"
+          update-environment: false
+      - name: Assert python-version output is set
+        env:
+          ACTUAL: ${{ steps.setup.outputs.python-version }}
+        run: |
+          echo "actual python-version: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-version output is empty"
+            exit 1
+          fi
+          echo "PASS: python-version output is '$ACTUAL'"
+      - name: Assert python-path output is set
+        env:
+          ACTUAL: ${{ steps.setup.outputs.python-path }}
+        run: |
+          echo "actual python-path: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-path output is empty"
+            exit 1
+          fi
+          echo "PASS: python-path output is '$ACTUAL'"
+      - name: Assert Python executable is accessible via python-path
+        env:
+          PYTHON_PATH: ${{ steps.setup.outputs.python-path }}
+        run: |
+          echo "Using python-path: $PYTHON_PATH"
+          if [ ! -f "$PYTHON_PATH" ]; then
+            echo "FAIL: python-path '$PYTHON_PATH' does not point to an existing file"
+            exit 1
+          fi
+          PYVER=$("$PYTHON_PATH" --version 2>&1)
+          echo "Python version via python-path: $PYVER"
+          if ! echo "$PYVER" | grep -q "3.11"; then
+            echo "FAIL: expected Python 3.11, got '$PYVER'"
+            exit 1
+          fi
+          echo "PASS: Python 3.11 accessible via python-path"

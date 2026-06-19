@@ -1,0 +1,35 @@
+name: Test Python setup with python-version-file
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Create .python-version file
+        run: |
+          echo "3.10" > .python-version
+          cat .python-version
+      - id: setup
+        uses: .
+        with:
+          python-version-file: ".python-version"
+      - name: Assert python-version output is set
+        env:
+          ACTUAL: ${{ steps.setup.outputs.python-version }}
+        run: |
+          echo "actual python-version: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-version output is empty"
+            exit 1
+          fi
+          echo "PASS: python-version output is '$ACTUAL'"
+      - name: Assert Python version matches version file
+        run: |
+          PYVER=$(python --version 2>&1)
+          echo "Got: $PYVER"
+          if ! echo "$PYVER" | grep -q "3.10"; then
+            echo "FAIL: expected Python 3.10 (from .python-version file), got '$PYVER'"
+            exit 1
+          fi
+          echo "PASS: Python version matches .python-version file"
