@@ -1,0 +1,49 @@
+name: Test Python setup with update-environment false
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: setup-python
+        uses: .
+        with:
+          python-version: "3.10"
+          update-environment: false
+      - name: Assert python-version output is set
+        env:
+          ACTUAL: ${{ steps.setup-python.outputs.python-version }}
+        run: |
+          echo "actual python-version: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-version output is empty"
+            exit 1
+          fi
+          echo "PASS: python-version=$ACTUAL"
+      - name: Assert python-path output is set and executable exists
+        env:
+          ACTUAL: ${{ steps.setup-python.outputs.python-path }}
+        run: |
+          echo "actual python-path: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-path output is empty"
+            exit 1
+          fi
+          if [ ! -f "$ACTUAL" ]; then
+            echo "FAIL: python executable does not exist at $ACTUAL"
+            exit 1
+          fi
+          echo "PASS: python-path=$ACTUAL"
+      - name: Assert Python executable works via explicit path
+        env:
+          PYTHON_PATH: ${{ steps.setup-python.outputs.python-path }}
+        run: |
+          echo "Running python via explicit path: $PYTHON_PATH"
+          PYVER=$("$PYTHON_PATH" --version 2>&1)
+          echo "Python version: $PYVER"
+          if ! echo "$PYVER" | grep -q "3.10"; then
+            echo "FAIL: expected Python 3.10, got $PYVER"
+            exit 1
+          fi
+          echo "PASS: $PYVER"

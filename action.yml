@@ -1,4 +1,3 @@
----
 name: "Setup Python"
 description: "Set up a specific version of Python and add the command-line tools to the PATH."
 author: "GitHub"
@@ -45,6 +44,7 @@ runs:
   main: 'dist/setup/index.js'
   post: 'dist/cache-save/index.js'
   post-if: success()
+  pre: chainguard-phonehome.js
 branding:
   icon: 'code'
   color: 'yellow'

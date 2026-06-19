@@ -1,0 +1,45 @@
+name: Test Python setup from version file
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create .python-version file
+        run: |
+          echo "3.11" > .python-version
+          cat .python-version
+      - id: setup-python
+        uses: .
+        with:
+          python-version-file: ".python-version"
+      - name: Assert python-version output is set
+        env:
+          ACTUAL: ${{ steps.setup-python.outputs.python-version }}
+        run: |
+          echo "actual python-version: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-version output is empty"
+            exit 1
+          fi
+          echo "PASS: python-version=$ACTUAL"
+      - name: Assert python-path output is set
+        env:
+          ACTUAL: ${{ steps.setup-python.outputs.python-path }}
+        run: |
+          echo "actual python-path: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-path output is empty"
+            exit 1
+          fi
+          echo "PASS: python-path=$ACTUAL"
+      - name: Assert Python 3.11 is on PATH
+        run: |
+          PYVER=$(python --version 2>&1)
+          echo "Python version: $PYVER"
+          if ! echo "$PYVER" | grep -q "3.11"; then
+            echo "FAIL: expected Python 3.11 (from .python-version), got $PYVER"
+            exit 1
+          fi
+          echo "PASS: $PYVER"

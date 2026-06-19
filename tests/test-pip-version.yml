@@ -1,0 +1,32 @@
+name: Test pip-version input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: setup-python
+        uses: .
+        with:
+          python-version: "3.11"
+          pip-version: "24.0"
+      - name: Assert python-version output is set
+        env:
+          ACTUAL: ${{ steps.setup-python.outputs.python-version }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-version output should not be empty"
+            exit 1
+          fi
+          echo "PASS: python-version=$ACTUAL"
+      - name: Assert pip version matches requested
+        run: |
+          PIP_VER=$(pip --version | awk '{print $2}')
+          echo "pip version: $PIP_VER"
+          if [ "$PIP_VER" != "24.0" ]; then
+            echo "FAIL: expected pip 24.0, got $PIP_VER"
+            exit 1
+          fi
+          echo "PASS: pip version is $PIP_VER"
