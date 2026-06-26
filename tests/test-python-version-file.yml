@@ -1,0 +1,34 @@
+name: Test python-version-file input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Create .python-version file
+        run: |
+          echo "3.11" > .python-version
+      - id: action
+        uses: .
+        with:
+          python-version-file: .python-version
+      - name: Assert python-version output is set
+        env:
+          ACTUAL: ${{ steps.action.outputs.python-version }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-version output was empty"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert python version matches file
+        run: |
+          PYTHON_VER=$(python --version 2>&1 | awk '{print $2}')
+          echo "python version: $PYTHON_VER"
+          if [[ "$PYTHON_VER" != 3.11* ]]; then
+            echo "FAIL: expected Python 3.11.x, got $PYTHON_VER"
+            exit 1
+          fi
+          echo "PASS"

@@ -1,0 +1,45 @@
+name: Test update-environment false
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup-python
+        uses: .
+        with:
+          python-version: "3.11"
+          update-environment: "false"
+      - name: Assert python-version output is still set
+        env:
+          ACTUAL: ${{ steps.setup-python.outputs.python-version }}
+        run: |
+          echo "python-version output: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-version output should be set even when update-environment is false"
+            exit 1
+          fi
+          echo "PASS: python-version output is '$ACTUAL'"
+      - name: Assert python-path output is still set
+        env:
+          ACTUAL: ${{ steps.setup-python.outputs.python-path }}
+        run: |
+          echo "python-path output: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-path output should be set even when update-environment is false"
+            exit 1
+          fi
+          echo "PASS: python-path output is '$ACTUAL'"
+      - name: Assert python-path executable works directly
+        env:
+          PYTHON_PATH: ${{ steps.setup-python.outputs.python-path }}
+        run: |
+          echo "Invoking python via python-path directly: $PYTHON_PATH"
+          VERSION=$("$PYTHON_PATH" --version 2>&1)
+          echo "Got: $VERSION"
+          if ! echo "$VERSION" | grep -q "3.11"; then
+            echo "FAIL: expected Python 3.11 via python-path, got '$VERSION'"
+            exit 1
+          fi
+          echo "PASS"
