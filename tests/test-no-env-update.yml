@@ -1,0 +1,53 @@
+name: Test Python setup without environment update
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup
+        uses: .
+        with:
+          python-version: "3.12"
+          update-environment: false
+      - name: Assert python-version output is set
+        env:
+          ACTUAL: ${{ steps.setup.outputs.python-version }}
+        run: |
+          echo "actual python-version: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-version output is empty"
+            exit 1
+          fi
+          if ! echo "$ACTUAL" | grep -qE "^3\.12"; then
+            echo "FAIL: expected Python 3.12.x but got: $ACTUAL"
+            exit 1
+          fi
+          echo "PASS: python-version=$ACTUAL"
+      - name: Assert python-path output is set
+        env:
+          ACTUAL: ${{ steps.setup.outputs.python-path }}
+        run: |
+          echo "actual python-path: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-path output is empty"
+            exit 1
+          fi
+          if [ ! -f "$ACTUAL" ]; then
+            echo "FAIL: python-path does not point to an existing file: $ACTUAL"
+            exit 1
+          fi
+          echo "PASS: python-path=$ACTUAL"
+      - name: Assert python-path executable runs correctly
+        env:
+          PY_PATH: ${{ steps.setup.outputs.python-path }}
+        run: |
+          echo "Running python via python-path: $PY_PATH"
+          PY_VER=$("$PY_PATH" --version 2>&1)
+          echo "version: $PY_VER"
+          if ! echo "$PY_VER" | grep -qE "^Python 3\.12"; then
+            echo "FAIL: expected Python 3.12.x but got: $PY_VER"
+            exit 1
+          fi
+          echo "PASS"

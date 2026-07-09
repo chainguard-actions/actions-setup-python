@@ -1,0 +1,50 @@
+name: Test Python version range
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup
+        uses: .
+        with:
+          python-version: "3.x"
+          update-environment: true
+      - name: Assert python-version output starts with 3
+        env:
+          ACTUAL: ${{ steps.setup.outputs.python-version }}
+        run: |
+          echo "actual python-version: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-version output is empty"
+            exit 1
+          fi
+          if ! echo "$ACTUAL" | grep -qE "^3\."; then
+            echo "FAIL: expected a Python 3.x version but got: $ACTUAL"
+            exit 1
+          fi
+          echo "PASS: python-version=$ACTUAL"
+      - name: Assert python-path output is set and executable exists
+        env:
+          ACTUAL: ${{ steps.setup.outputs.python-path }}
+        run: |
+          echo "actual python-path: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-path output is empty"
+            exit 1
+          fi
+          if [ ! -f "$ACTUAL" ]; then
+            echo "FAIL: python-path does not point to an existing file: $ACTUAL"
+            exit 1
+          fi
+          echo "PASS: python-path=$ACTUAL"
+      - name: Assert python is callable
+        run: |
+          PY_VER=$(python --version 2>&1)
+          echo "python --version: $PY_VER"
+          if ! echo "$PY_VER" | grep -qE "^Python 3\."; then
+            echo "FAIL: expected Python 3.x but got: $PY_VER"
+            exit 1
+          fi
+          echo "PASS"

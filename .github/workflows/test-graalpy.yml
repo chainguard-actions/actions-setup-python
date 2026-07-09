@@ -1,0 +1,132 @@
+name: Validate GraalPy e2e
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  setup-graalpy:
+    name: Setup GraalPy ${{ matrix.graalpy }} ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-20.04, ubuntu-latest, macos-13]
+        graalpy:
+          - 'graalpy-22.3'
+          - 'graalpy-23.0'
+          - 'graalpy-23.1'
+          - 'graalpy-24.1'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: setup-python ${{ matrix.graalpy }}
+        id: setup-python
+        uses: ./
+        with:
+          python-version: ${{ matrix.graalpy }}
+
+      - name: Check python-path
+        env:
+          PYTHON_PATH: ${{ steps.setup-python.outputs.python-path }}
+        run: ./__tests__/check-python-path.sh "$PYTHON_PATH"
+        shell: bash
+
+      - name: GraalPy and Python version
+        run: python --version
+
+      - name: Run simple code
+        run: python -c 'import math; print(math.factorial(5))'
+
+      - name: Assert GraalPy is running
+        run: |
+          import platform
+          assert platform.python_implementation().lower() == "graalvm"
+        shell: python
+
+      - name: Assert expected binaries (or symlinks) are present
+        env:
+          GRAALPY_VERSION: ${{ matrix.graalpy }}
+        run: |
+          EXECUTABLE="$GRAALPY_VERSION"
+          EXECUTABLE=${EXECUTABLE/graalpy-/graalpy}  # remove the first '-' in "graalpy-X.Y" -> "graalpyX.Y" to match executable name
+          EXECUTABLE=${EXECUTABLE%%-*}  # remove any -* suffixe
+          "${EXECUTABLE}" --version
+        shell: bash
+
+  setup-graalpy-noenv:
+    name: Setup GraalPy ${{ matrix.graalpy }} ${{ matrix.os }} (noenv)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-20.04, ubuntu-latest, macos-13]
+        graalpy: ['graalpy22.3', 'graalpy23.0', 'graalpy23.1', 'graalpy24.1']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: setup-python ${{ matrix.graalpy }}
+        id: setup-python
+        uses: ./
+        with:
+          python-version: ${{ matrix.graalpy }}
+          update-environment: false
+
+      - name: GraalPy and Python version
+        env:
+          PYTHON_PATH: ${{ steps.setup-python.outputs.python-path }}
+        run: "$PYTHON_PATH" --version
+
+      - name: Run simple code
+        env:
+          PYTHON_PATH: ${{ steps.setup-python.outputs.python-path }}
+        run: "$PYTHON_PATH" -c 'import math; print(math.factorial(5))'
+
+  check-latest:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, macos-13]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Setup GraalPy and check latest
+        uses: ./
+        id: graalpy
+        with:
+          python-version: 'graalpy-24.x'
+          check-latest: true
+      - name: GraalPy and Python version
+        run: python --version
+
+      - name: Run simple code
+        run: python -c 'import math; print(math.factorial(5))'
+
+      - name: Assert GraalPy is running
+        run: |
+          import platform
+          assert platform.python_implementation().lower() == "graalvm"
+        shell: python
+
+      - name: Assert expected binaries (or symlinks) are present
+        env:
+          GRAALPY_VERSION: ${{ steps.graalpy.outputs.python-version }}
+        run: |
+          EXECUTABLE="$GRAALPY_VERSION"
+          EXECUTABLE="${EXECUTABLE%.*}"
+          "${EXECUTABLE}" --version
+        shell: bash
