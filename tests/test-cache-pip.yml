@@ -1,0 +1,46 @@
+name: Test Python setup with pip cache
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      RUNNER_TOOL_CACHE: /tmp/hostedtoolcache
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Prepare tool cache directory
+        run: mkdir -p /tmp/hostedtoolcache
+      - name: Create requirements.txt for cache key
+        run: |
+          echo "requests==2.28.0" > "$GITHUB_WORKSPACE/requirements.txt"
+      - id: setup
+        uses: .
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Assert python-version output is set
+        env:
+          ACTUAL: ${{ steps.setup.outputs.python-version }}
+        run: |
+          echo "actual python-version: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-version output is empty"
+            exit 1
+          fi
+          echo "PASS: python-version output is $ACTUAL"
+      - name: Assert cache-hit output is set (true, false, or empty when cache unavailable)
+        env:
+          ACTUAL: ${{ steps.setup.outputs.cache-hit }}
+        run: |
+          echo "actual cache-hit: $ACTUAL"
+          # cache-hit can be 'true', 'false', or empty if cache service is unavailable
+          if [ -n "$ACTUAL" ] && [ "$ACTUAL" != "true" ] && [ "$ACTUAL" != "false" ]; then
+            echo "FAIL: cache-hit should be 'true', 'false', or empty, got: $ACTUAL"
+            exit 1
+          fi
+          echo "PASS: cache-hit is '$ACTUAL'"
+      - name: Assert Python and pip are available
+        run: |
+          python --version
+          pip --version
+          echo "PASS"

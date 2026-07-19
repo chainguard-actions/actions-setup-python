@@ -1,0 +1,54 @@
+name: Test Python setup with version range
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      RUNNER_TOOL_CACHE: /tmp/hostedtoolcache
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Prepare tool cache directory
+        run: mkdir -p /tmp/hostedtoolcache
+      - id: setup
+        uses: .
+        with:
+          python-version: "3.x"
+      - name: Assert python-version output is set
+        env:
+          ACTUAL: ${{ steps.setup.outputs.python-version }}
+        run: |
+          echo "actual python-version: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-version output is empty"
+            exit 1
+          fi
+          # Should start with "3."
+          if ! echo "$ACTUAL" | grep -qE "^3\."; then
+            echo "FAIL: expected version starting with 3. but got $ACTUAL"
+            exit 1
+          fi
+          echo "PASS: python-version output is $ACTUAL"
+      - name: Assert python-path output is set
+        env:
+          ACTUAL: ${{ steps.setup.outputs.python-path }}
+        run: |
+          echo "actual python-path: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-path output is empty"
+            exit 1
+          fi
+          if [ ! -f "$ACTUAL" ]; then
+            echo "FAIL: python-path does not point to an existing file: $ACTUAL"
+            exit 1
+          fi
+          echo "PASS: python-path is $ACTUAL"
+      - name: Assert Python 3.x is on PATH
+        run: |
+          VER=$(python --version 2>&1)
+          echo "Got: $VER"
+          if ! echo "$VER" | grep -qE "^Python 3\."; then
+            echo "FAIL: expected Python 3.x but got $VER"
+            exit 1
+          fi
+          echo "PASS"
