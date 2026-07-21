@@ -13,6 +13,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | v6.1.0 | [`v6.1.0`](https://github.com/chainguard-actions/actions-setup-python/tree/v6.1.0) | [`83679a8`](https://github.com/actions/setup-python/commit/83679a892e2d95755f2dac6acb0bfd1e9ac5d548) |
 | v6.2.0 | [`v6.2.0`](https://github.com/chainguard-actions/actions-setup-python/tree/v6.2.0) | — |
 | v6.3.0 | [`v6.3.0`](https://github.com/chainguard-actions/actions-setup-python/tree/v6.3.0) | [`ece7cb0`](https://github.com/actions/setup-python/commit/ece7cb06caefa5fff74198d8649806c4678c61a1) |
+| v7.0.0 | [`v7.0.0`](https://github.com/chainguard-actions/actions-setup-python/tree/v7.0.0) | [`5fda3b9`](https://github.com/actions/setup-python/commit/5fda3b95a4ea91299a34e894583c3862153e4b97) |
 
 ## Privacy
 
