@@ -1,0 +1,39 @@
+name: Test setup-python with python-version-file
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Create .python-version file
+        run: |
+          echo "3.10" > "$GITHUB_WORKSPACE/.python-version"
+          cat "$GITHUB_WORKSPACE/.python-version"
+      - id: setup
+        uses: .
+        with:
+          python-version-file: ".python-version"
+      - name: Assert python-version output matches file
+        env:
+          ACTUAL: ${{ steps.setup.outputs.python-version }}
+        run: |
+          echo "actual python-version: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-version output is empty"
+            exit 1
+          fi
+          if ! echo "$ACTUAL" | grep -qE '^3\.10'; then
+            echo "FAIL: expected python-version to start with 3.10, got: $ACTUAL"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert Python on PATH is correct version
+        run: |
+          VER=$(python --version 2>&1)
+          echo "Python version: $VER"
+          if ! echo "$VER" | grep -qE '^Python 3\.10'; then
+            echo "FAIL: expected Python 3.10.x on PATH, got: $VER"
+            exit 1
+          fi
+          echo "PASS"

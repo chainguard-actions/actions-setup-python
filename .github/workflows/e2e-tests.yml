@@ -1,0 +1,109 @@
+name: e2e tests
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  test-setup-python:
+    name: Test setup-python
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      matrix:
+        operating-system:
+          [
+            ubuntu-22.04,
+            ubuntu-latest,
+            ubuntu-24.04-arm,
+            windows-latest,
+            windows-11-arm,
+            macos-15-intel,
+            macos-latest
+          ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Run with setup-python 3.10.11
+        if: matrix.operating-system != 'windows-11-arm'
+        uses: ./
+        with:
+          python-version: 3.10.11
+      - name: Verify 3.10.11
+        if: matrix.operating-system != 'windows-11-arm'
+        run: python __tests__/verify-python.py 3.10.11
+
+      - name: Run with setup-python 3.11.9
+        uses: ./
+        with:
+          python-version: 3.11.9
+      - name: Verify 3.11.9
+        run: python __tests__/verify-python.py 3.11.9
+
+      - name: Run with setup-python 3.12.10
+        uses: ./
+        with:
+          python-version: 3.12.10
+      - name: Verify 3.12.10
+        run: python __tests__/verify-python.py 3.12.10
+
+      - name: Run with setup-python 3.13.14
+        uses: ./
+        with:
+          python-version: 3.13.14
+      - name: Verify 3.13.14
+        run: python __tests__/verify-python.py 3.13.14
+
+      - name: Run with setup-python 3.14.6
+        uses: ./
+        with:
+          python-version: 3.14.6
+      - name: Verify 3.14.6
+        run: python __tests__/verify-python.py 3.14.6
+
+      - name: Run with setup-python 3.14
+        id: cp314
+        uses: ./
+        with:
+          python-version: '3.14'
+      - name: Verify 3.14
+        run: python __tests__/verify-python.py 3.14
+
+      - name: Install pipx (Windows)
+        if: runner.os == 'Windows'
+        run: python -m pip install pipx
+
+      - name: Run python-path sample 3.14
+        env:
+          PYTHON_PATH: ${{ steps.cp314.outputs.python-path }}
+          PIPX_HOME: ${{ runner.temp }}/pipx
+          PIPX_BIN_DIR: ${{ runner.temp }}/pipx/bin
+        run: pipx run --python "$PYTHON_PATH" nox --version
+
+      - name: Run with setup-python ==3.14
+        uses: ./
+        with:
+          python-version: '==3.14'
+      - name: Verify ==3.14
+        run: python __tests__/verify-python.py 3.14
+
+      - name: Run with setup-python <3.14
+        uses: ./
+        with:
+          python-version: '<3.14'
+      - name: Verify <3.14
+        run: python __tests__/verify-python.py 3.13
+
+      - name: Test Raw Endpoint Access
+        run: |
+          curl -L https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json | jq empty
+        shell: bash

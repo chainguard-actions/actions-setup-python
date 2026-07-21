@@ -1,0 +1,705 @@
+name: Validate Python e2e
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+  schedule:
+    - cron: 30 3 * * *
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  setup-versions-from-manifest:
+    name: Setup ${{ matrix.python }} ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          [
+            ubuntu-22.04,
+            ubuntu-latest,
+            ubuntu-24.04-arm,
+            windows-latest,
+            windows-11-arm,
+            macos-15-intel,
+            macos-latest
+          ]
+        python: [3.10.11, 3.11.9, 3.12.10, 3.13.14, 3.14.6]
+        exclude:
+          - os: windows-11-arm
+            python: 3.10.11
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: setup-python ${{ matrix.python }}
+        id: setup-python
+        uses: ./
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Check python-path
+        env:
+          PYTHON_PATH: ${{ steps.setup-python.outputs.python-path }}
+        run: ./__tests__/check-python-path.sh "$PYTHON_PATH"
+        shell: bash
+
+      - name: Validate version
+        env:
+          EXPECTED_VERSION: ${{ matrix.python }}
+        run: |
+          $pythonVersion = (python --version)
+          if ("Python $env:EXPECTED_VERSION" -ne "$pythonVersion"){
+            Write-Host "The current version is $pythonVersion; expected version is $env:EXPECTED_VERSION"
+            exit 1
+          }
+          $pythonVersion
+        shell: pwsh
+
+      - name: Run simple code
+        run: python -c 'import math; print(math.factorial(5))'
+
+  setup-versions-from-file:
+    name: Setup ${{ matrix.python }} ${{ matrix.os }} version file
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          [
+            ubuntu-22.04,
+            ubuntu-latest,
+            ubuntu-24.04-arm,
+            windows-latest,
+            windows-11-arm,
+            macos-15-intel,
+            macos-latest
+          ]
+        python: [3.10.11, 3.11.9, 3.12.10, 3.13.14, 3.14.6]
+        exclude:
+          - os: windows-11-arm
+            python: 3.10.11
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: build-version-file ${{ matrix.python }}
+        env:
+          PYTHON_VERSION: ${{ matrix.python }}
+        run: echo "$PYTHON_VERSION" > .python-version
+
+      - name: setup-python ${{ matrix.python }}
+        id: setup-python
+        uses: ./
+        with:
+          python-version-file: .python-version
+
+      - name: Check python-path
+        env:
+          PYTHON_PATH: ${{ steps.setup-python.outputs.python-path }}
+        run: ./__tests__/check-python-path.sh "$PYTHON_PATH"
+        shell: bash
+
+      - name: Validate version
+        env:
+          EXPECTED_VERSION: ${{ matrix.python }}
+        run: |
+          $pythonVersion = (python --version)
+          if ("Python $env:EXPECTED_VERSION" -ne "$pythonVersion"){
+            Write-Host "The current version is $pythonVersion; expected version is $env:EXPECTED_VERSION"
+            exit 1
+          }
+          $pythonVersion
+        shell: pwsh
+
+      - name: Run simple code
+        run: python -c 'import math; print(math.factorial(5))'
+
+  setup-versions-from-file-without-parameter:
+    name: Setup ${{ matrix.python }} ${{ matrix.os }} version file without parameter
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          [
+            ubuntu-22.04,
+            ubuntu-latest,
+            ubuntu-24.04-arm,
+            windows-latest,
+            windows-11-arm,
+            macos-15-intel,
+            macos-latest
+          ]
+        python: [3.10.11, 3.11.9, 3.12.10, 3.13.14, 3.14.6]
+        exclude:
+          - os: windows-11-arm
+            python: 3.10.11
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: build-version-file ${{ matrix.python }}
+        env:
+          PYTHON_VERSION: ${{ matrix.python }}
+        run: echo "$PYTHON_VERSION" > .python-version
+
+      - name: setup-python ${{ matrix.python }}
+        id: setup-python
+        uses: ./
+
+      - name: Check python-path
+        env:
+          PYTHON_PATH: ${{ steps.setup-python.outputs.python-path }}
+        run: ./__tests__/check-python-path.sh "$PYTHON_PATH"
+        shell: bash
+
+      - name: Validate version
+        env:
+          EXPECTED_VERSION: ${{ matrix.python }}
+        run: |
+          $pythonVersion = (python --version)
+          if ("Python $env:EXPECTED_VERSION" -ne "$pythonVersion"){
+            Write-Host "The current version is $pythonVersion; expected version is $env:EXPECTED_VERSION"
+            exit 1
+          }
+          $pythonVersion
+        shell: pwsh
+
+      - name: Run simple code
+        run: python -c 'import math; print(math.factorial(5))'
+
+  setup-versions-from-standard-pyproject-file:
+    name: Setup ${{ matrix.python }} ${{ matrix.os }} standard pyproject file
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          [
+            ubuntu-22.04,
+            ubuntu-latest,
+            ubuntu-24.04-arm,
+            windows-latest,
+            windows-11-arm,
+            macos-15-intel,
+            macos-latest
+          ]
+        python: [3.10.11, 3.11.9, '==3.12.10', 3.13.14, 3.14.6]
+        exclude:
+          - os: windows-11-arm
+            python: 3.10.11
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: build-version-file ${{ matrix.python }}
+        env:
+          PYTHON_VERSION: ${{ matrix.python }}
+        run: |
+          echo '[project]
+            requires-python = "'"$PYTHON_VERSION"'"
+          ' > pyproject.toml
+
+      - name: setup-python ${{ matrix.python }}
+        id: setup-python
+        uses: ./
+        with:
+          python-version-file: pyproject.toml
+
+      - name: Check python-path
+        env:
+          PYTHON_PATH: ${{ steps.setup-python.outputs.python-path }}
+        run: ./__tests__/check-python-path.sh "$PYTHON_PATH"
+        shell: bash
+
+      - name: Validate version
+        env:
+          EXPECTED_VERSION: ${{ matrix.python }}
+        run: |
+          $pythonVersion = (python --version)
+          if ("Python $env:EXPECTED_VERSION".replace("==", "") -ne "$pythonVersion"){
+            Write-Host "The current version is $pythonVersion; expected version is $env:EXPECTED_VERSION"
+            exit 1
+          }
+          $pythonVersion
+        shell: pwsh
+
+      - name: Run simple code
+        run: python -c 'import math; print(math.factorial(5))'
+
+  setup-versions-from-poetry-pyproject-file:
+    name: Setup ${{ matrix.python }} ${{ matrix.os }} poetry pyproject file
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          [
+            ubuntu-22.04,
+            ubuntu-latest,
+            ubuntu-24.04-arm,
+            windows-latest,
+            windows-11-arm,
+            macos-15-intel,
+            macos-latest
+          ]
+        python: [3.10.11, 3.11.9, 3.12.10, 3.13.14, 3.14.6]
+        exclude:
+          - os: windows-11-arm
+            python: 3.10.11
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: build-version-file ${{ matrix.python }}
+        env:
+          PYTHON_VERSION: ${{ matrix.python }}
+        run: |
+          echo '[tool.poetry.dependencies]
+            python = "'"$PYTHON_VERSION"'"
+          ' > pyproject.toml
+
+      - name: setup-python ${{ matrix.python }}
+        id: setup-python
+        uses: ./
+        with:
+          python-version-file: pyproject.toml
+
+      - name: Check python-path
+        env:
+          PYTHON_PATH: ${{ steps.setup-python.outputs.python-path }}
+        run: ./__tests__/check-python-path.sh "$PYTHON_PATH"
+        shell: bash
+
+      - name: Validate version
+        env:
+          EXPECTED_VERSION: ${{ matrix.python }}
+        run: |
+          $pythonVersion = (python --version)
+          if ("Python $env:EXPECTED_VERSION" -ne "$pythonVersion"){
+            Write-Host "The current version is $pythonVersion; expected version is $env:EXPECTED_VERSION"
+            exit 1
+          }
+          $pythonVersion
+        shell: pwsh
+
+      - name: Run simple code
+        run: python -c 'import math; print(math.factorial(5))'
+
+  setup-versions-from-tool-versions-file:
+    name: Setup ${{ matrix.python }} ${{ matrix.os }} .tool-versions file
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          [
+            ubuntu-22.04,
+            ubuntu-latest,
+            ubuntu-24.04-arm,
+            windows-latest,
+            windows-11-arm,
+            macos-15-intel,
+            macos-latest
+          ]
+        python: [pypy3.11-7.3.18, graalpy-24.1.2, 3.13.14, 3.15-dev]
+        exclude:
+          - os: windows-latest
+            python: graalpy-24.1.2
+          - os: windows-11-arm
+            python: graalpy-24.1.2
+          - os: windows-11-arm
+            python: pypy3.11-7.3.18
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: build-tool-versions-file ${{ matrix.python }}
+        env:
+          PYTHON_VERSION: ${{ matrix.python }}
+        run: |
+          echo "python $PYTHON_VERSION" > .tool-versions
+
+      - name: setup-python using .tool-versions ${{ matrix.python }}
+        id: setup-python-tool-versions
+        uses: ./
+        with:
+          python-version-file: .tool-versions
+
+  setup-versions-from-pipfile-with-python_version:
+    name: Setup ${{ matrix.python }} ${{ matrix.os }} Pipfile with python_version
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          [
+            ubuntu-22.04,
+            ubuntu-latest,
+            ubuntu-24.04-arm,
+            windows-latest,
+            windows-11-arm,
+            macos-15-intel,
+            macos-latest
+          ]
+        python: [3.10.11, 3.11.9, 3.13.14, 3.14.6]
+        exclude:
+          - os: windows-11-arm
+            python: 3.10.11
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: build-version-file ${{ matrix.python }}
+        env:
+          PYTHON_VERSION: ${{ matrix.python }}
+        run: |
+          echo '[requires]
+            python_version = "'"$PYTHON_VERSION"'"
+          ' > Pipfile
+
+      - name: setup-python ${{ matrix.python }}
+        id: setup-python
+        uses: ./
+        with:
+          python-version-file: Pipfile
+
+      - name: Check python-path
+        env:
+          PYTHON_PATH: ${{ steps.setup-python.outputs.python-path }}
+        run: ./__tests__/check-python-path.sh "$PYTHON_PATH"
+        shell: bash
+
+      - name: Validate version
+        env:
+          EXPECTED_VERSION: ${{ matrix.python }}
+        run: |
+          $pythonVersion = (python --version)
+          if ("Python $env:EXPECTED_VERSION".replace("==", "") -ne "$pythonVersion"){
+            Write-Host "The current version is $pythonVersion; expected version is $env:EXPECTED_VERSION"
+            exit 1
+          }
+          $pythonVersion
+        shell: pwsh
+
+      - name: Run simple code
+        run: python -c 'import math; print(math.factorial(5))'
+
+  setup-versions-from-pipfile-with-python_full_version:
+    name: Setup ${{ matrix.python }} ${{ matrix.os }} Pipfile with python_full_version
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          [
+            ubuntu-22.04,
+            ubuntu-latest,
+            ubuntu-24.04-arm,
+            windows-latest,
+            windows-11-arm,
+            macos-15-intel,
+            macos-latest
+          ]
+        python: [3.10.11, 3.11.9, 3.13.14, 3.14.6]
+        exclude:
+          - os: windows-11-arm
+            python: 3.10.11
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: build-version-file ${{ matrix.python }}
+        env:
+          PYTHON_VERSION: ${{ matrix.python }}
+        run: |
+          echo '[requires]
+            python_full_version = "'"$PYTHON_VERSION"'"
+          ' > Pipfile
+
+      - name: setup-python ${{ matrix.python }}
+        id: setup-python
+        uses: ./
+        with:
+          python-version-file: Pipfile
+
+      - name: Check python-path
+        env:
+          PYTHON_PATH: ${{ steps.setup-python.outputs.python-path }}
+        run: ./__tests__/check-python-path.sh "$PYTHON_PATH"
+        shell: bash
+
+      - name: Validate version
+        env:
+          EXPECTED_VERSION: ${{ matrix.python }}
+        run: |
+          $pythonVersion = (python --version)
+          if ("Python $env:EXPECTED_VERSION".replace("==", "") -ne "$pythonVersion"){
+            Write-Host "The current version is $pythonVersion; expected version is $env:EXPECTED_VERSION"
+            exit 1
+          }
+          $pythonVersion
+        shell: pwsh
+
+      - name: Run simple code
+        run: python -c 'import math; print(math.factorial(5))'
+
+  setup-pre-release-version-from-manifest:
+    name: Setup 3.15.0-beta.3 ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          [
+            ubuntu-22.04,
+            ubuntu-latest,
+            ubuntu-24.04-arm,
+            windows-latest,
+            windows-11-arm,
+            macos-15-intel,
+            macos-latest
+          ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: setup-python 3.15.0-beta.3
+        id: setup-python
+        uses: ./
+        with:
+          python-version: '3.15.0-beta.3'
+
+      - name: Check python-path
+        env:
+          PYTHON_PATH: ${{ steps.setup-python.outputs.python-path }}
+        run: ./__tests__/check-python-path.sh "$PYTHON_PATH"
+        shell: bash
+
+      - name: Validate version
+        run: |
+          $pythonVersion = (python --version)
+          if ("Python 3.15.0b3" -ne "$pythonVersion"){
+            Write-Host "The current version is $pythonVersion; expected version is 3.15.0b3"
+            exit 1
+          }
+          $pythonVersion
+        shell: pwsh
+
+      - name: Run simple code
+        run: python -c 'import math; print(math.factorial(5))'
+
+  setup-dev-version:
+    name: Setup 3.15-dev ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          [
+            ubuntu-22.04,
+            ubuntu-latest,
+            ubuntu-24.04-arm,
+            windows-latest,
+            windows-11-arm,
+            macos-15-intel,
+            macos-latest
+          ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: setup-python 3.15-dev
+        id: setup-python
+        uses: ./
+        with:
+          python-version: '3.15-dev'
+
+      - name: Check python-path
+        env:
+          PYTHON_PATH: ${{ steps.setup-python.outputs.python-path }}
+        run: ./__tests__/check-python-path.sh "$PYTHON_PATH"
+        shell: bash
+
+      - name: Validate version
+        env:
+          PYTHON_VERSION: ${{ steps.setup-python.outputs.python-version }}
+        run: |
+          if [[ "$PYTHON_VERSION" != 3.15.* ]]; then
+            echo "Expected version starting with 3.15., got: $PYTHON_VERSION"
+            exit 1
+          fi
+        shell: bash
+
+      - name: Run simple code
+        run: python -c 'import math; print(math.factorial(5))'
+
+  setup-prerelease-version:
+    name: Setup 3.15 ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          [
+            ubuntu-22.04,
+            ubuntu-latest,
+            ubuntu-24.04-arm,
+            windows-latest,
+            windows-11-arm,
+            macos-15-intel,
+            macos-latest
+          ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: setup-python 3.15
+        id: setup-python
+        uses: ./
+        with:
+          python-version: '3.15'
+          allow-prereleases: true
+
+      - name: Check python-path
+        env:
+          PYTHON_PATH: ${{ steps.setup-python.outputs.python-path }}
+        run: ./__tests__/check-python-path.sh "$PYTHON_PATH"
+        shell: bash
+
+      - name: Validate version
+        env:
+          PYTHON_VERSION: ${{ steps.setup-python.outputs.python-version }}
+        run: |
+          if [[ "$PYTHON_VERSION" != 3.15.* ]]; then
+            echo "Expected version starting with 3.15., got: $PYTHON_VERSION"
+            exit 1
+          fi
+        shell: bash
+
+      - name: Run simple code
+        run: python -c 'import math; print(math.factorial(5))'
+
+  setup-versions-noenv:
+    name: Setup ${{ matrix.python }} ${{ matrix.os }} (noenv)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          [
+            ubuntu-22.04,
+            ubuntu-latest,
+            ubuntu-24.04-arm,
+            windows-latest,
+            windows-11-arm,
+            macos-15-intel,
+            macos-latest
+          ]
+        python: ['3.10', '3.11', '3.12', '3.13', '3.14']
+        exclude:
+          - os: windows-11-arm
+            python: '3.10'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: setup-python ${{ matrix.python }}
+        id: setup-python
+        uses: ./
+        with:
+          python-version: ${{ matrix.python }}
+          update-environment: false
+
+      - name: Python version
+        env:
+          PYTHON_PATH: ${{ steps.setup-python.outputs.python-path }}
+        run: "$PYTHON_PATH" --version
+
+      - name: Run simple code
+        env:
+          PYTHON_PATH: ${{ steps.setup-python.outputs.python-path }}
+        run: "$PYTHON_PATH" -c 'import math; print(math.factorial(5))'
+
+  check-latest:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          [
+            ubuntu-22.04,
+            ubuntu-latest,
+            ubuntu-24.04-arm,
+            windows-latest,
+            windows-11-arm,
+            macos-15-intel,
+            macos-latest
+          ]
+        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
+        exclude:
+          - os: windows-11-arm
+            python-version: '3.10'
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: Setup Python and check latest
+        uses: ./
+        with:
+          python-version: ${{ matrix.python-version }}
+          check-latest: true
+      - name: Validate version
+        env:
+          EXPECTED_VERSION: ${{ matrix.python-version }}
+        run: |
+          $pythonVersion = (python --version)
+          if ("$pythonVersion" -NotMatch "$env:EXPECTED_VERSION"){
+            Write-Host "The current version is $pythonVersion; expected version is $env:EXPECTED_VERSION"
+            exit 1
+          }
+          $pythonVersion
+        shell: pwsh
+
+  setup-python-multiple-python-versions:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          [
+            ubuntu-22.04,
+            ubuntu-latest,
+            ubuntu-24.04-arm,
+            windows-latest,
+            windows-11-arm,
+            macos-15-intel,
+            macos-latest
+          ]
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: Setup Python and check latest
+        uses: ./
+        with:
+          python-version: |
+            3.11
+            3.12
+            3.13
+            3.14
+          check-latest: true
+      - name: Validate version
+        run: |
+          $pythonVersion = (python --version)
+          if ("$pythonVersion" -NotMatch "3.14"){
+            Write-Host "The current version is $pythonVersion; expected version is 3.14"
+            exit 1
+          }
+          $pythonVersion
+        shell: pwsh

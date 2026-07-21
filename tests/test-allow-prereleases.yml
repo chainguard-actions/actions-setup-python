@@ -1,0 +1,46 @@
+name: Test setup-python with allow-prereleases
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup
+        uses: .
+        with:
+          python-version: "3.x"
+          allow-prereleases: true
+      - name: Assert python-version output is set
+        env:
+          ACTUAL: ${{ steps.setup.outputs.python-version }}
+        run: |
+          echo "actual python-version: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-version output is empty"
+            exit 1
+          fi
+          if ! echo "$ACTUAL" | grep -qE '^3\.'; then
+            echo "FAIL: expected a Python 3.x version, got: $ACTUAL"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert python-path output is set and executable
+        env:
+          ACTUAL: ${{ steps.setup.outputs.python-path }}
+        run: |
+          echo "actual python-path: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-path output is empty"
+            exit 1
+          fi
+          if [ ! -f "$ACTUAL" ]; then
+            echo "FAIL: python-path does not point to an existing file: $ACTUAL"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert Python is functional
+        run: |
+          python --version
+          python -c "import sys; print(sys.version)"
+          echo "PASS"
