@@ -35,7 +35,7 @@ jobs:
         python: [3.9.13, 3.10.11, 3.11.9, 3.12.3, 3.13.0]
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: setup-python ${{ matrix.python }}
         id: setup-python
@@ -82,7 +82,7 @@ jobs:
         python: [3.9.13, 3.10.11, 3.11.9, 3.12.3, 3.13.0]
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: build-version-file ${{ matrix.python }}
         env:
@@ -134,7 +134,7 @@ jobs:
         python: [3.9.13, 3.10.11, 3.11.9, 3.12.3, 3.13.0]
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: build-version-file ${{ matrix.python }}
         env:
@@ -184,7 +184,7 @@ jobs:
         python: [3.9.13, 3.10.11, 3.11.9, '==3.12.3', 3.13.0]
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: build-version-file ${{ matrix.python }}
         env:
@@ -239,7 +239,7 @@ jobs:
         python: [3.9.13, 3.10.11, 3.11.9, 3.12.3, 3.13.0]
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: build-version-file ${{ matrix.python }}
         env:
@@ -293,7 +293,7 @@ jobs:
           ]
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: setup-python 3.14.0-alpha.1
         id: setup-python
@@ -329,7 +329,7 @@ jobs:
         os: [macos-latest, windows-latest, ubuntu-latest, macos-13]
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: setup-python 3.14-dev
         id: setup-python
@@ -348,8 +348,8 @@ jobs:
           PYTHON_VERSION: ${{ steps.setup-python.outputs.python-version }}
         run: |
           case "$PYTHON_VERSION" in
-            3.14.*) echo "Version $PYTHON_VERSION starts with 3.14. as expected" ;;
-            *) echo "Unexpected version: $PYTHON_VERSION"; exit 1 ;;
+            3.14.*) ;;
+            *) echo "Unexpected python version: $PYTHON_VERSION"; exit 1 ;;
           esac
         shell: bash
 
@@ -365,7 +365,7 @@ jobs:
         os: [macos-latest, windows-latest, ubuntu-latest, macos-13]
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: setup-python 3.14
         id: setup-python
@@ -385,8 +385,8 @@ jobs:
           PYTHON_VERSION: ${{ steps.setup-python.outputs.python-version }}
         run: |
           case "$PYTHON_VERSION" in
-            3.14.*) echo "Version $PYTHON_VERSION starts with 3.14. as expected" ;;
-            *) echo "Unexpected version: $PYTHON_VERSION"; exit 1 ;;
+            3.14.*) ;;
+            *) echo "Unexpected python version: $PYTHON_VERSION"; exit 1 ;;
           esac
         shell: bash
 
@@ -411,7 +411,7 @@ jobs:
         python: ['3.9', '3.10', '3.11', '3.12', '3.13']
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: setup-python ${{ matrix.python }}
         id: setup-python
@@ -438,7 +438,7 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest, macos-13]
         python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Setup Python and check latest
         uses: ./
         with:
@@ -463,7 +463,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest, macos-13]
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Setup Python and check latest
         uses: ./
         with:

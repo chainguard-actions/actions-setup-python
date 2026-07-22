@@ -1,4 +1,4 @@
-name: Test basic Python setup
+name: Test Python setup with pip cache
 on:
   workflow_dispatch:
 jobs:
@@ -6,10 +6,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create a requirements.txt for pip cache detection
+        run: |
+          echo "requests" > requirements.txt
+
       - id: setup
         uses: .
         with:
-          python-version: "3.11"
+          python-version: "3.12"
+          cache: "pip"
           update-environment: true
 
       - name: Assert python-version output is set
@@ -38,13 +44,23 @@ jobs:
           fi
           echo "PASS: python-path=$ACTUAL"
 
-      - name: Assert python is on PATH and correct version
+      - name: Assert cache-hit output is defined (true or false)
+        env:
+          ACTUAL: ${{ steps.setup.outputs.cache-hit }}
         run: |
-          echo "python version on PATH:"
-          python --version
+          echo "actual cache-hit: $ACTUAL"
+          if [ "$ACTUAL" != "true" ] && [ "$ACTUAL" != "false" ] && [ "$ACTUAL" != "" ]; then
+            echo "FAIL: unexpected cache-hit value: $ACTUAL"
+            exit 1
+          fi
+          echo "PASS: cache-hit=$ACTUAL"
+
+      - name: Assert Python 3.12 is on PATH
+        run: |
           VER=$(python --version 2>&1)
-          if ! echo "$VER" | grep -q "3.11"; then
-            echo "FAIL: expected Python 3.11 but got: $VER"
+          echo "python version: $VER"
+          if ! echo "$VER" | grep -q "3.12"; then
+            echo "FAIL: expected Python 3.12 but got: $VER"
             exit 1
           fi
           echo "PASS: $VER"
