@@ -1,4 +1,4 @@
-name: Test basic Python setup
+name: Test Python setup with allow-prereleases
 on:
   workflow_dispatch:
 jobs:
@@ -9,7 +9,8 @@ jobs:
       - id: setup
         uses: .
         with:
-          python-version: "3.11"
+          python-version: "3.13"
+          allow-prereleases: true
       - name: Assert python-version output is set
         env:
           ACTUAL: ${{ steps.setup.outputs.python-version }}
@@ -19,7 +20,11 @@ jobs:
             echo "FAIL: python-version output is empty"
             exit 1
           fi
-          echo "PASS: python-version output is set to $ACTUAL"
+          if ! echo "$ACTUAL" | grep -qE "^3\.13"; then
+            echo "FAIL: expected a 3.13.x version but got $ACTUAL"
+            exit 1
+          fi
+          echo "PASS: python-version resolved to $ACTUAL"
       - name: Assert python-path output is set
         env:
           ACTUAL: ${{ steps.setup.outputs.python-path }}
@@ -33,19 +38,13 @@ jobs:
             echo "FAIL: python executable not found at $ACTUAL"
             exit 1
           fi
-          echo "PASS: python-path output is $ACTUAL"
-      - name: Assert Python is on PATH and correct version
+          echo "PASS: python-path is $ACTUAL"
+      - name: Assert Python 3.13 is on PATH
         run: |
-          echo "Python version on PATH:"
-          python --version
           PYVER=$(python --version 2>&1)
           echo "Got: $PYVER"
-          if ! echo "$PYVER" | grep -q "3.11"; then
-            echo "FAIL: expected Python 3.11 but got $PYVER"
+          if ! echo "$PYVER" | grep -qE "^Python 3\.13"; then
+            echo "FAIL: expected Python 3.13 but got $PYVER"
             exit 1
           fi
-          echo "PASS: Python 3.11 is on PATH"
-      - name: Assert pip is available
-        run: |
-          pip --version
-          echo "PASS: pip is available"
+          echo "PASS: Python 3.13 is on PATH: $PYVER"
