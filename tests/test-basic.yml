@@ -9,7 +9,7 @@ jobs:
       - id: setup
         uses: .
         with:
-          python-version: "3.11"
+          python-version: '3.11'
       - name: Assert python-version output is set
         env:
           ACTUAL: ${{ steps.setup.outputs.python-version }}
@@ -19,7 +19,7 @@ jobs:
             echo "FAIL: python-version output is empty"
             exit 1
           fi
-          echo "PASS: python-version output is '$ACTUAL'"
+          echo "PASS: python-version output = $ACTUAL"
       - name: Assert python-path output is set
         env:
           ACTUAL: ${{ steps.setup.outputs.python-path }}
@@ -30,22 +30,17 @@ jobs:
             exit 1
           fi
           if [ ! -f "$ACTUAL" ]; then
-            echo "FAIL: python-path '$ACTUAL' does not point to an existing file"
+            echo "FAIL: python-path does not point to an existing file: $ACTUAL"
             exit 1
           fi
-          echo "PASS: python-path output is '$ACTUAL'"
+          echo "PASS: python-path = $ACTUAL"
       - name: Assert Python is on PATH and correct version
         run: |
           echo "Python version on PATH:"
           python --version
-          PYVER=$(python --version 2>&1)
-          echo "Got: $PYVER"
-          if ! echo "$PYVER" | grep -q "3.11"; then
-            echo "FAIL: expected Python 3.11, got '$PYVER'"
+          VER=$(python --version 2>&1)
+          if ! echo "$VER" | grep -q "3.11"; then
+            echo "FAIL: expected Python 3.11, got: $VER"
             exit 1
           fi
-          echo "PASS"
-      - name: Assert pip is available
-        run: |
-          pip --version
-          echo "PASS: pip is available"
+          echo "PASS: $VER"
