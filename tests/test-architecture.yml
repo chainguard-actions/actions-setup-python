@@ -34,4 +34,4 @@ jobs:
       - name: Assert python is executable
         run: |
           python --version
-          echo "PASS"
+          echo "PASS: python is on PATH"
