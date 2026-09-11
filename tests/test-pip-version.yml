@@ -6,27 +6,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - id: action
+      - id: setup-python
         uses: .
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           pip-version: "24.0"
       - name: Assert python-version output is set
         env:
-          ACTUAL: ${{ steps.action.outputs.python-version }}
+          PYTHON_VERSION: ${{ steps.setup-python.outputs.python-version }}
         run: |
-          echo "actual: $ACTUAL"
-          if [ -z "$ACTUAL" ]; then
+          echo "python-version: $PYTHON_VERSION"
+          if [ -z "$PYTHON_VERSION" ]; then
             echo "FAIL: python-version output is empty"
             exit 1
           fi
-          echo "PASS: python-version=$ACTUAL"
-      - name: Assert pip version matches requested
+          echo "PASS: python-version=$PYTHON_VERSION"
+      - name: Assert pip version matches requested version
         run: |
-          PIP_VER=$(pip --version 2>&1 | awk '{print $2}')
+          PIP_VER=$(pip --version | awk '{print $2}')
           echo "pip version: $PIP_VER"
           if [ "$PIP_VER" != "24.0" ]; then
-            echo "FAIL: expected pip 24.0 but got $PIP_VER"
+            echo "FAIL: expected pip 24.0, got $PIP_VER"
             exit 1
           fi
           echo "PASS: pip version is $PIP_VER"
