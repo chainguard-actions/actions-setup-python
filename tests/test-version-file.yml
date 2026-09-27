@@ -1,0 +1,51 @@
+name: Test Python setup with python-version-file
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Create .python-version file
+        run: |
+          echo "3.12" > "$GITHUB_WORKSPACE/.python-version"
+          cat "$GITHUB_WORKSPACE/.python-version"
+      - id: setup
+        uses: .
+        with:
+          python-version-file: ".python-version"
+      - name: Assert python-version output matches file content
+        env:
+          PY_VERSION: ${{ steps.setup.outputs.python-version }}
+        run: |
+          echo "python-version: $PY_VERSION"
+          if [ -z "$PY_VERSION" ]; then
+            echo "FAIL: python-version output is empty"
+            exit 1
+          fi
+          if echo "$PY_VERSION" | grep -qE "^3\.12"; then
+            echo "PASS: resolved to 3.12 as specified in .python-version file"
+          else
+            echo "FAIL: expected 3.12.x but got: $PY_VERSION"
+            exit 1
+          fi
+      - name: Assert python-path output is set
+        env:
+          PY_PATH: ${{ steps.setup.outputs.python-path }}
+        run: |
+          echo "python-path: $PY_PATH"
+          if [ -z "$PY_PATH" ]; then
+            echo "FAIL: python-path output is empty"
+            exit 1
+          fi
+          echo "PASS: python-path is '$PY_PATH'"
+      - name: Assert python 3.12 is active
+        run: |
+          PY_VER=$(python3 --version 2>&1 || python --version 2>&1)
+          echo "Detected: $PY_VER"
+          if echo "$PY_VER" | grep -q "3\.12"; then
+            echo "PASS: Python 3.12 is active"
+          else
+            echo "FAIL: Expected Python 3.12 but got: $PY_VER"
+            exit 1
+          fi

@@ -1,0 +1,42 @@
+name: Test cache-dependency-path input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Create a requirements file at a custom path
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/deps"
+          echo "urllib3==1.26.0" > "$GITHUB_WORKSPACE/deps/requirements.txt"
+      - id: action
+        uses: .
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: "deps/requirements.txt"
+      - name: Assert python-version output is set
+        env:
+          PY_VERSION: ${{ steps.action.outputs.python-version }}
+        run: |
+          echo "python-version: $PY_VERSION"
+          if [ -z "$PY_VERSION" ]; then
+            echo "FAIL: python-version output is empty"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert python-path output is set
+        env:
+          PY_PATH: ${{ steps.action.outputs.python-path }}
+        run: |
+          echo "python-path: $PY_PATH"
+          if [ -z "$PY_PATH" ]; then
+            echo "FAIL: python-path output is empty"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Assert Python is on PATH
+        run: |
+          python --version
+          echo "PASS: python is on PATH"

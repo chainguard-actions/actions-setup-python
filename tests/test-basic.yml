@@ -1,0 +1,48 @@
+name: Test basic Python setup
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup
+        uses: .
+        with:
+          python-version: "3.11"
+      - name: Assert python-version output is set
+        env:
+          PY_VERSION: ${{ steps.setup.outputs.python-version }}
+        run: |
+          echo "python-version: $PY_VERSION"
+          if [ -z "$PY_VERSION" ]; then
+            echo "FAIL: python-version output is empty"
+            exit 1
+          fi
+          echo "PASS: python-version is '$PY_VERSION'"
+      - name: Assert python-path output is set
+        env:
+          PY_PATH: ${{ steps.setup.outputs.python-path }}
+        run: |
+          echo "python-path: $PY_PATH"
+          if [ -z "$PY_PATH" ]; then
+            echo "FAIL: python-path output is empty"
+            exit 1
+          fi
+          if [ ! -f "$PY_PATH" ]; then
+            echo "FAIL: python-path '$PY_PATH' does not point to an existing file"
+            exit 1
+          fi
+          echo "PASS: python-path is '$PY_PATH'"
+      - name: Assert python is on PATH and correct version
+        run: |
+          echo "which python: $(which python3 || which python || echo 'not found')"
+          python3 --version || python --version
+          PY_VER=$(python3 --version 2>&1 || python --version 2>&1)
+          echo "Detected: $PY_VER"
+          if echo "$PY_VER" | grep -q "3\.11"; then
+            echo "PASS: Python 3.11 is active"
+          else
+            echo "FAIL: Expected Python 3.11 but got: $PY_VER"
+            exit 1
+          fi

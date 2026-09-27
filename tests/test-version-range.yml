@@ -1,0 +1,41 @@
+name: Test Python setup with version range
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup
+        uses: .
+        with:
+          python-version: "3.x"
+      - name: Assert python-version output is set and is a 3.x version
+        env:
+          PY_VERSION: ${{ steps.setup.outputs.python-version }}
+        run: |
+          echo "python-version: $PY_VERSION"
+          if [ -z "$PY_VERSION" ]; then
+            echo "FAIL: python-version output is empty"
+            exit 1
+          fi
+          if echo "$PY_VERSION" | grep -qE "^3\.[0-9]+"; then
+            echo "PASS: resolved to a 3.x version: $PY_VERSION"
+          else
+            echo "FAIL: expected a 3.x version but got: $PY_VERSION"
+            exit 1
+          fi
+      - name: Assert python-path output is set
+        env:
+          PY_PATH: ${{ steps.setup.outputs.python-path }}
+        run: |
+          echo "python-path: $PY_PATH"
+          if [ -z "$PY_PATH" ]; then
+            echo "FAIL: python-path output is empty"
+            exit 1
+          fi
+          echo "PASS: python-path is '$PY_PATH'"
+      - name: Assert python is executable
+        run: |
+          python3 --version || python --version
+          echo "PASS: python is executable"
