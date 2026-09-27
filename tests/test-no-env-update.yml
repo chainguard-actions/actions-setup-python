@@ -1,0 +1,48 @@
+name: Test Python setup with update-environment false
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup
+        uses: .
+        with:
+          python-version: "3.12"
+          update-environment: "false"
+      - name: Assert python-version output is set
+        env:
+          ACTUAL: ${{ steps.setup.outputs.python-version }}
+        run: |
+          echo "python-version: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-version output is empty"
+            exit 1
+          fi
+          if ! echo "$ACTUAL" | grep -qE "^3\.12"; then
+            echo "FAIL: expected version starting with '3.12', got: $ACTUAL"
+            exit 1
+          fi
+          echo "PASS: python-version=$ACTUAL"
+      - name: Assert python-path output is set and executable
+        env:
+          ACTUAL: ${{ steps.setup.outputs.python-path }}
+        run: |
+          echo "python-path: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-path output is empty"
+            exit 1
+          fi
+          if [ ! -f "$ACTUAL" ]; then
+            echo "FAIL: python-path does not point to an existing file: $ACTUAL"
+            exit 1
+          fi
+          # Verify the path actually runs Python 3.12
+          VERSION=$("$ACTUAL" --version 2>&1)
+          echo "Version from python-path: $VERSION"
+          if ! echo "$VERSION" | grep -qE "3\.12"; then
+            echo "FAIL: expected 3.12 from python-path, got: $VERSION"
+            exit 1
+          fi
+          echo "PASS: python-path=$ACTUAL"
