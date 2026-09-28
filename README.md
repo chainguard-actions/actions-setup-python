@@ -8,6 +8,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
+| v2.3.4 | [`v2.3.4`](https://github.com/chainguard-actions/actions-setup-python/tree/v2.3.4) | [`e9aba2c`](https://github.com/actions/setup-python/commit/e9aba2c848f5ebd159c070c61ea2c4e2b122355e) |
 | v4.9.1 | [`v4.9.1`](https://github.com/chainguard-actions/actions-setup-python/tree/v4.9.1) | [`7f4fc3e`](https://github.com/actions/setup-python/commit/7f4fc3e22c37d6ff65e88745f38bd3157c663f7c) |
 | v5.3.0 | [`v5.3.0`](https://github.com/chainguard-actions/actions-setup-python/tree/v5.3.0) | [`0b93645`](https://github.com/actions/setup-python/commit/0b93645e9fea7318ecaed2b359559ac225c90a2b) |
 | v5.4.0 | [`v5.4.0`](https://github.com/chainguard-actions/actions-setup-python/tree/v5.4.0) | [`4237552`](https://github.com/actions/setup-python/commit/42375524e23c412d93fb67b49958b491fce71c38) |
