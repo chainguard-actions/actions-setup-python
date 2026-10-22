@@ -1,0 +1,35 @@
+name: Test explicit architecture x64
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          python-version: "3.12"
+          architecture: x64
+      - name: Assert python-version output and interpreter architecture
+        env:
+          ACTUAL: ${{ steps.action.outputs.python-version }}
+          PY_PATH: ${{ steps.action.outputs.python-path }}
+        run: |
+          echo "actual: $ACTUAL"
+          case "$ACTUAL" in
+            3.12.*) echo "PASS: version" ;;
+            *) echo "FAIL: expected 3.12.x"; exit 1 ;;
+          esac
+          echo "python-path: $PY_PATH"
+          case "$PY_PATH" in
+            */x64/*) echo "PASS: x64 toolcache path" ;;
+            *) echo "FAIL: expected x64 in python-path"; exit 1 ;;
+          esac
+          M="$("$PY_PATH" -c 'import platform; print(platform.machine())')"
+          echo "machine: $M"
+          if [ "$M" != "x86_64" ]; then
+            echo "FAIL: expected x86_64 interpreter"
+            exit 1
+          fi
+          echo "PASS"

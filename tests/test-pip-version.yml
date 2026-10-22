@@ -1,0 +1,23 @@
+name: Test pip-version
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          python-version: "3.12"
+          pip-version: "24.0"
+      - name: Assert requested pip version installed
+        env:
+          PY_PATH: ${{ steps.action.outputs.python-path }}
+        run: |
+          OUT="$("$PY_PATH" -m pip --version)"
+          echo "pip: $OUT"
+          case "$OUT" in
+            "pip 24.0 "*) echo "PASS" ;;
+            *) echo "FAIL: expected pip 24.0"; exit 1 ;;
+          esac

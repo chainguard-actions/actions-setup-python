@@ -1,0 +1,39 @@
+name: Test update-environment false
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          python-version: "3.12"
+          update-environment: "false"
+      - name: Assert outputs set and env not updated
+        env:
+          ACTUAL: ${{ steps.action.outputs.python-version }}
+          PY_PATH: ${{ steps.action.outputs.python-path }}
+        run: |
+          echo "python-version: $ACTUAL"
+          echo "python-path: $PY_PATH"
+          case "$ACTUAL" in
+            3.12.*) ;;
+            *) echo "FAIL: expected 3.12.x"; exit 1 ;;
+          esac
+          if [ -z "$PY_PATH" ] || [ ! -x "$PY_PATH" ]; then
+            echo "FAIL: python-path missing or not executable"
+            exit 1
+          fi
+          V="$("$PY_PATH" -c 'import sys; print("%d.%d" % sys.version_info[:2])')"
+          if [ "$V" != "3.12" ]; then
+            echo "FAIL: python-path reports $V"
+            exit 1
+          fi
+          echo "pythonLocation='${pythonLocation:-}'"
+          if [ -n "${pythonLocation:-}" ]; then
+            echo "FAIL: pythonLocation should not be set when update-environment is false"
+            exit 1
+          fi
+          echo "PASS"

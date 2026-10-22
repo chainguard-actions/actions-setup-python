@@ -1,0 +1,29 @@
+name: Test mirror-token with default mirror
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          python-version: "3.12"
+          mirror: https://raw.githubusercontent.com/actions/python-versions/main
+          mirror-token: token ${{ github.token }}
+      - name: Assert python-version output
+        env:
+          ACTUAL: ${{ steps.action.outputs.python-version }}
+          PY_PATH: ${{ steps.action.outputs.python-path }}
+        run: |
+          echo "actual: $ACTUAL"
+          case "$ACTUAL" in
+            3.12.*) echo "PASS: version" ;;
+            *) echo "FAIL: expected 3.12.x"; exit 1 ;;
+          esac
+          if [ -z "$PY_PATH" ] || [ ! -x "$PY_PATH" ]; then
+            echo "FAIL: python-path missing or not executable"
+            exit 1
+          fi
+          echo "PASS"
