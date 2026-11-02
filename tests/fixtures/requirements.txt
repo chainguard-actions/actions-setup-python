@@ -1,2 +1,0 @@
-# Minimal requirements file used as cache-dependency-path fixture
-six==1.16.0
